@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package eventbridge.dispatcher.v1;
+
+// EventBridgeDispatcherService is the gRPC service that EventBridge will use to push target events to your server
+service EventBridgeDispatcherService {
+  // PostTargetEvent is the method that EventBridge will use to push target events to your server.
+  // If you want to use the gRPC protocol to push the events filtered and converted by EventBridge
+  // to your server, your server needs to implement this interface. EventBridge will act as a client
+  // and use this interface to push the Target Event to your server. If the server returns an exception,
+  // the push will be retried.
+  rpc PostTargetEvent(PostTargetEventRequest) returns (PostTargetEventResponse) {}
+}
+
+// PostTargetEventRequest is the request parameter for the target event delivery
+message PostTargetEventRequest {
+  // Event ID, specified by source event sender, source + id is globally unique.
+  // You can use source + id for deduplication, no need to parse data content.
+  uint64 id = 1;
+  // Source is the unique identifier of the event source (sender), not empty, max 64 bytes.
+  string source = 2;
+  // The result data after conversion by Rule
+  string data = 3;
+  // The encoding format of data, currently only application/json
+  string datacontenttype = 4;
+}
+
+// PostTargetEventResponse is the response parameter for the target event delivery
+message PostTargetEventResponse {}
