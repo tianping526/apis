@@ -1,1 +1,1 @@
-EventBridge Job v1 API
+EventBridge dispatcher v1 API
