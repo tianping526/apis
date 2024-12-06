@@ -245,10 +245,8 @@ message CreateSchemaRequest {
     max_bytes: 64
     min_len: 1
   }];
-  // Bus name bound to the event source and type,
-  // not specified, the default bus (Default) is used.
-  // If specified, the bus must exist, not empty, max 64 bytes.
-  optional string bus_name = 3 [(validate.rules).string = {
+  // Bus name bound to the event source and type, not empty, max 64 bytes.
+  string bus_name = 3 [(validate.rules).string = {
     max_bytes: 64
     min_len: 1
   }];
