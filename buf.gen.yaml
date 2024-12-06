@@ -1,0 +1,16 @@
+version: v2
+plugins:
+  - remote: buf.build/community/google-gnostic-openapi:v0.7.0
+    out: .
+
+
+managed:
+  enabled: true
+
+  override:
+    - file_option: go_package_prefix
+      value: github.com/tianping526/apis/api
+
+
+inputs:
+  - directory: api
