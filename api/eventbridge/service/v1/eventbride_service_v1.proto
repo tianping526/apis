@@ -343,11 +343,13 @@ message ListBusResponse {
     // Event bus work mode.
     BusWorkMode mode = 2;
     // The topic name where the source event is stored.
-    string source_topic_name = 3;
+    string source_topic = 3;
     // The topic name where the timed delivery event is stored.
-    string source_delay_topic_name = 4;
-    // The topic name where the event is retried if the delivery fails.
-    string target_retry_topic_name = 5;
+    string source_delay_topic = 4;
+    // The topic name where the event is retried if the delivery fails and the retry strategy is exponential decay.
+    string target_exp_decay_topic = 5;
+    // The topic name where the event is retried if the delivery fails and the retry strategy is backoff.
+    string target_backoff_topic = 6;
   }
   // All event buses that meet the conditions.
   repeated Bus buses = 1;
@@ -370,7 +372,7 @@ message CreateBusRequest {
   // Also, you can specify the topic of the remote MQ that eb can access,
   // such as rocketmq://10.10.10.1:500/remoteTopic which means the remote MQ endpoint is
   // 10.10.10.1:500 and the topic where the source event is stored is remoteTopic.
-  optional string source_topic_name = 3 [(validate.rules).string = {
+  optional string source_topic = 3 [(validate.rules).string = {
     max_bytes: 128
     min_len: 1
   }];
@@ -380,17 +382,27 @@ message CreateBusRequest {
   // Also, you can specify the topic of the remote MQ that eb can access,
   // such as rocketmq://10.10.10.1:500/remoteTopic which means the remote MQ endpoint is
   // 10.10.10.1:500 and the topic where the timed delivery event is stored is remoteTopic.
-  optional string source_delay_topic_name = 4 [(validate.rules).string = {
+  optional string source_delay_topic = 4 [(validate.rules).string = {
     max_bytes: 128
     min_len: 1
   }];
-  // The topic name where the event is retried if the delivery fails.
-  // If not specified, the default topic name EBInterTargetRetryBus{name} is used.
+  // The topic name where the event is retried if the delivery fails and the retry strategy is exponential decay.
+  // If not specified, the default topic name EBInterTargetExpDecayBus{name} is used.
   // You can specify the topic of the built-in MQ, such as FakerTopic.
   // Also, you can specify the topic of the remote MQ that eb can access,
   // such as rocketmq://10.10.10.1:500/remoteTopic which means the remote MQ endpoint is
   // 10.10.10.1:500  and the topic where the event is retried if the delivery fails is remoteTopic.
-  optional string target_retry_topic_name = 5 [(validate.rules).string = {
+  optional string target_exp_decay_topic = 5 [(validate.rules).string = {
+    max_bytes: 128
+    min_len: 1
+  }];
+  // The topic name where the event is retried if the delivery fails and the retry strategy is backoff.
+  // If not specified, the default topic name EBInterTargetBackoffBus{name} is used.
+  // You can specify the topic of the built-in MQ, such as FakerTopic.
+  // Also, you can specify the topic of the remote MQ that eb can access,
+  // such as rocketmq://10.10.10.1:500/remoteTopic which means the remote MQ endpoint is
+  // 10.10.10.1:500  and the topic where the event is retried if the delivery fails is remoteTopic.
+  optional string target_backoff_topic = 6 [(validate.rules).string = {
     max_bytes: 128
     min_len: 1
   }];
