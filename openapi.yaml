@@ -469,7 +469,7 @@ components:
                     type: integer
                     description: Event bus work mode.
                     format: enum
-                sourceTopicName:
+                sourceTopic:
                     type: string
                     description: |-
                         The topic name where the source event is stored.
@@ -478,7 +478,7 @@ components:
                          Also, you can specify the topic of the remote MQ that eb can access,
                          such as rocketmq://10.10.10.1:500/remoteTopic which means the remote MQ endpoint is
                          10.10.10.1:500 and the topic where the source event is stored is remoteTopic.
-                sourceDelayTopicName:
+                sourceDelayTopic:
                     type: string
                     description: |-
                         The topic name where the timed delivery event is stored.
@@ -487,11 +487,20 @@ components:
                          Also, you can specify the topic of the remote MQ that eb can access,
                          such as rocketmq://10.10.10.1:500/remoteTopic which means the remote MQ endpoint is
                          10.10.10.1:500 and the topic where the timed delivery event is stored is remoteTopic.
-                targetRetryTopicName:
+                targetExpDecayTopic:
                     type: string
                     description: |-
-                        The topic name where the event is retried if the delivery fails.
-                         If not specified, the default topic name EBInterTargetRetryBus{name} is used.
+                        The topic name where the event is retried if the delivery fails and the retry strategy is exponential decay.
+                         If not specified, the default topic name EBInterTargetExpDecayBus{name} is used.
+                         You can specify the topic of the built-in MQ, such as FakerTopic.
+                         Also, you can specify the topic of the remote MQ that eb can access,
+                         such as rocketmq://10.10.10.1:500/remoteTopic which means the remote MQ endpoint is
+                         10.10.10.1:500  and the topic where the event is retried if the delivery fails is remoteTopic.
+                targetBackoffTopic:
+                    type: string
+                    description: |-
+                        The topic name where the event is retried if the delivery fails and the retry strategy is backoff.
+                         If not specified, the default topic name EBInterTargetBackoffBus{name} is used.
                          You can specify the topic of the built-in MQ, such as FakerTopic.
                          Also, you can specify the topic of the remote MQ that eb can access,
                          such as rocketmq://10.10.10.1:500/remoteTopic which means the remote MQ endpoint is
@@ -551,10 +560,7 @@ components:
                     description: Event type unique identifier under the source. Not empty, max 64 bytes.
                 busName:
                     type: string
-                    description: |-
-                        Bus name bound to the event source and type,
-                         not specified, the default bus (Default) is used.
-                         If specified, the bus must exist, not empty, max 64 bytes.
+                    description: Bus name bound to the event source and type, not empty, max 64 bytes.
                 spec:
                     type: string
                     description: |-
@@ -673,15 +679,18 @@ components:
                     type: integer
                     description: Event bus work mode.
                     format: enum
-                sourceTopicName:
+                sourceTopic:
                     type: string
                     description: The topic name where the source event is stored.
-                sourceDelayTopicName:
+                sourceDelayTopic:
                     type: string
                     description: The topic name where the timed delivery event is stored.
-                targetRetryTopicName:
+                targetExpDecayTopic:
                     type: string
-                    description: The topic name where the event is retried if the delivery fails.
+                    description: The topic name where the event is retried if the delivery fails and the retry strategy is exponential decay.
+                targetBackoffTopic:
+                    type: string
+                    description: The topic name where the event is retried if the delivery fails and the retry strategy is backoff.
             description: Event bus definition.
         ListDispatcherSchemaResponse:
             type: object
