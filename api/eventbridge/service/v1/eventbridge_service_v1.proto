@@ -99,7 +99,7 @@ service EventBridgeService {
 
 // Retry strategy for event delivery
 enum RetryStrategy {
-  // Unspecified strategy, equivalent to EXPONENTIAL_DECAY_RETRY.
+  // Unspecified strategy.
   RETRY_STRATEGY_UNSPECIFIED = 0;
   // Exponential decay retry strategy. Retry 176 times, total 177 times,
   // the interval time of each retry increases exponentially to 512 seconds,
@@ -157,6 +157,7 @@ message PostEventRequest {
   // the event will be delivered downstream at the time specified by pub_time (delayed delivery).
   google.protobuf.Timestamp pub_time = 2;
   // Retry strategy for event delivery.
+  // If RETRY_STRATEGY_UNSPECIFIED is specified, the target's retry strategy will be used.
   RetryStrategy retry_strategy = 3 [(validate.rules).enum = {defined_only: true}];
 }
 
@@ -505,6 +506,7 @@ message Target {
   // and the later target parameter with the same key will override the previous declaration.
   repeated TargetParam params = 3;
   // Retry strategy for event delivery.
+  // If RETRY_STRATEGY_UNSPECIFIED is specified, RETRY_STRATEGY_EXPONENTIAL_DECAY will be used.
   RetryStrategy retry_strategy = 4 [(validate.rules).enum = {defined_only: true}];
 }
 

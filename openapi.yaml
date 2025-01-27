@@ -505,7 +505,9 @@ components:
                          Also, you can specify the topic of the remote MQ that eb can access,
                          such as rocketmq://10.10.10.1:500/remoteTopic which means the remote MQ endpoint is
                          10.10.10.1:500  and the topic where the event is retried if the delivery fails is remoteTopic.
-            description: CreateBusRequest is the request parameter for creating an event bus.
+            description: |-
+                CreateBusRequest is the request parameter for creating an event bus.
+                 If topic empty, TOPIC_EMPTY will be returned.
         CreateBusResponse:
             type: object
             properties:
@@ -769,7 +771,9 @@ components:
                     format: date-time
                 retryStrategy:
                     type: integer
-                    description: Retry strategy for event delivery.
+                    description: |-
+                        Retry strategy for event delivery.
+                         If RETRY_STRATEGY_UNSPECIFIED is specified, the target's retry strategy will be used.
                     format: enum
             description: |-
                 Post event request parameters.
@@ -848,7 +852,9 @@ components:
                          and the later target parameter with the same key will override the previous declaration.
                 retryStrategy:
                     type: integer
-                    description: Retry strategy for event delivery.
+                    description: |-
+                        Retry strategy for event delivery.
+                         If RETRY_STRATEGY_UNSPECIFIED is specified, RETRY_STRATEGY_EXPONENTIAL_DECAY will be used.
                     format: enum
             description: Target parameter, defines how to convert events and deliver them downstream.
         TargetParam:
