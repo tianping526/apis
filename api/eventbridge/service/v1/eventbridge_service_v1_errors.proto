@@ -29,4 +29,5 @@ enum EventBridgeServiceErrorReason {
   DATA_BUS_REMOVED = 10 [(errors.code) = 400];
   EVENT_DATA_NOT_VALID = 11 [(errors.code) = 400];
   PATTERN_SYNTAX_ERROR = 12 [(errors.code) = 400];
+  TOPIC_EMPTY = 13 [(errors.code) = 400];
 }

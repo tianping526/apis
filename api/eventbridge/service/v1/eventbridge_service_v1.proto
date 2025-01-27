@@ -177,14 +177,16 @@ message PostEventResponse {
 message EventExt {
   // Event data, related to specific domain scenarios.
   Event event = 1;
+  // The name of the event bus, which is used to store the event.
+  string bus_name = 2;
   // The name of the event rule, which is used to route target events.
-  string rule_name = 2;
+  string rule_name = 3;
   // Target ID, indicating which target the event needs to be pushed to.
-  uint64 target_id = 3;
+  uint64 target_id = 4;
   // Retry strategy for event delivery.
-  RetryStrategy retry_strategy = 4;
+  RetryStrategy retry_strategy = 5;
   // gRPC metadata, used to carry transport layer information.
-  map<string, string> metadata = 5;
+  map<string, string> metadata = 6;
 }
 
 // List Schema parameters.
@@ -358,6 +360,7 @@ message ListBusResponse {
 }
 
 // CreateBusRequest is the request parameter for creating an event bus.
+// If topic empty, TOPIC_EMPTY will be returned.
 message CreateBusRequest {
   // Event bus name, not empty, max 64 bytes.
   string name = 1 [(validate.rules).string = {
@@ -375,6 +378,7 @@ message CreateBusRequest {
   optional string source_topic = 3 [(validate.rules).string = {
     max_bytes: 128
     min_len: 1
+    uri: true
   }];
   // The topic name where the timed delivery event is stored.
   // If not specified, the default topic name EBInterDelayBus{name} is used.
@@ -385,6 +389,7 @@ message CreateBusRequest {
   optional string source_delay_topic = 4 [(validate.rules).string = {
     max_bytes: 128
     min_len: 1
+    uri: true
   }];
   // The topic name where the event is retried if the delivery fails and the retry strategy is exponential decay.
   // If not specified, the default topic name EBInterTargetExpDecayBus{name} is used.
@@ -395,6 +400,7 @@ message CreateBusRequest {
   optional string target_exp_decay_topic = 5 [(validate.rules).string = {
     max_bytes: 128
     min_len: 1
+    uri: true
   }];
   // The topic name where the event is retried if the delivery fails and the retry strategy is backoff.
   // If not specified, the default topic name EBInterTargetBackoffBus{name} is used.
@@ -405,6 +411,7 @@ message CreateBusRequest {
   optional string target_backoff_topic = 6 [(validate.rules).string = {
     max_bytes: 128
     min_len: 1
+    uri: true
   }];
 }
 
