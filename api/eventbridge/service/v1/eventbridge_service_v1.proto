@@ -157,7 +157,9 @@ message PostEventRequest {
   // the event will be delivered downstream at the time specified by pub_time (delayed delivery).
   google.protobuf.Timestamp pub_time = 2;
   // Retry strategy for event delivery.
-  // If RETRY_STRATEGY_UNSPECIFIED is specified, the target's retry strategy will be used.
+  // If RETRY_STRATEGY_UNSPECIFIED is specified, RETRY_STRATEGY_EXPONENTIAL_DECAY will be used.
+  // If target's retry_strategy is specified, any specified strategy here will be ignored
+  // and the target's strategy will be used.
   RetryStrategy retry_strategy = 3 [(validate.rules).enum = {defined_only: true}];
 }
 
@@ -506,7 +508,8 @@ message Target {
   // and the later target parameter with the same key will override the previous declaration.
   repeated TargetParam params = 3;
   // Retry strategy for event delivery.
-  // If RETRY_STRATEGY_UNSPECIFIED is specified, RETRY_STRATEGY_EXPONENTIAL_DECAY will be used.
+  // If RETRY_STRATEGY_UNSPECIFIED is specified, event's retry_strategy will be used,
+  // otherwise the specified strategy will override the event's retry_strategy.
   RetryStrategy retry_strategy = 4 [(validate.rules).enum = {defined_only: true}];
 }
 
