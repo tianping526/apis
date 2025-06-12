@@ -1,0 +1,693 @@
+syntax = "proto3";
+
+package eventbridge.service.v1;
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+// EventBridgeService is the service that provides EventBridge API.
+service EventBridgeService {
+  // Post event to eventbridge
+  rpc PostEvent(PostEventRequest) returns (PostEventResponse) {
+    option (google.api.http) = {
+      post: "/v1/eventbridge/event"
+      body: "*"
+    };
+  }
+
+  // List event schema that match the condition
+  rpc ListSchema(ListSchemaRequest) returns (ListSchemaResponse) {
+    option (google.api.http) = {get: "/v1/eventbridge/schemas"};
+  }
+  // Create event schema which define the event data structure and can bind to a bus
+  rpc CreateSchema(CreateSchemaRequest) returns (CreateSchemaResponse) {
+    option (google.api.http) = {
+      post: "/v1/eventbridge/schema"
+      body: "*"
+    };
+  }
+  // Update event schema
+  rpc UpdateSchema(UpdateSchemaRequest) returns (UpdateSchemaResponse) {
+    option (google.api.http) = {
+      patch: "/v1/eventbridge/schema"
+      body: "*"
+    };
+  }
+  // Delete event schema
+  rpc DeleteSchema(DeleteSchemaRequest) returns (DeleteSchemaResponse) {
+    option (google.api.http) = {delete: "/v1/eventbridge/schema"};
+  }
+
+  // List event bus that match the condition
+  rpc ListBus(ListBusRequest) returns (ListBusResponse) {
+    option (google.api.http) = {get: "/v1/eventbridge/buses"};
+  }
+  // Create event bus which is used to receive event
+  rpc CreateBus(CreateBusRequest) returns (CreateBusResponse) {
+    option (google.api.http) = {
+      post: "/v1/eventbridge/bus"
+      body: "*"
+    };
+  }
+  // Update event bus
+  rpc DeleteBus(DeleteBusRequest) returns (DeleteBusResponse) {
+    option (google.api.http) = {delete: "/v1/eventbridge/bus"};
+  }
+
+  // List event rule that match the condition
+  rpc ListRule(ListRuleRequest) returns (ListRuleResponse) {
+    option (google.api.http) = {get: "/v1/eventbridge/rules"};
+  }
+  // Create event rule which define the rule to route event
+  rpc CreateRule(CreateRuleRequest) returns (CreateRuleResponse) {
+    option (google.api.http) = {
+      post: "/v1/eventbridge/rule"
+      body: "*"
+    };
+  }
+  // Update event rule
+  rpc UpdateRule(UpdateRuleRequest) returns (UpdateRuleResponse) {
+    option (google.api.http) = {
+      patch: "/v1/eventbridge/rule"
+      body: "*"
+    };
+  }
+  // Delete event rule
+  rpc DeleteRule(DeleteRuleRequest) returns (DeleteRuleResponse) {
+    option (google.api.http) = {delete: "/v1/eventbridge/rule"};
+  }
+
+  // List event target that match the condition
+  rpc CreateTargets(CreateTargetsRequest) returns (CreateTargetsResponse) {
+    option (google.api.http) = {
+      post: "/v1/eventbridge/targets"
+      body: "*"
+    };
+  }
+  // Delete event target
+  rpc DeleteTargets(DeleteTargetsRequest) returns (DeleteTargetsResponse) {
+    option (google.api.http) = {delete: "/v1/eventbridge/targets"};
+  }
+
+  // List event dispatcher schema which define how to claim Dispatcher
+  // Dispatcher is used to deliver event to target
+  rpc ListDispatcherSchema(ListDispatcherSchemaRequest) returns (ListDispatcherSchemaResponse) {
+    option (google.api.http) = {get: "/v1/eventbridge/dispatcher/schemas"};
+  }
+}
+
+// Retry strategy for event delivery
+enum RetryStrategy {
+  // Unspecified strategy.
+  RETRY_STRATEGY_UNSPECIFIED = 0;
+  // Exponential decay retry strategy. Retry 176 times, total 177 times,
+  // the interval time of each retry increases exponentially to 512 seconds,
+  // the total retry time is 1 day; the specific interval of each retry is:
+  // 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 512...512 seconds (a total of 167 512).
+  RETRY_STRATEGY_EXPONENTIAL_DECAY = 1;
+  // Backoff retry strategy. Retry 3 times, total 4 times,
+  // the interval time of each retry is a random value between 10 seconds and 20 seconds.
+  RETRY_STRATEGY_BACKOFF = 2;
+}
+
+// Event is the basic unit of EventBridge, which is used to carry event data.
+message Event {
+  // Event ID, specified by the sender. The sender must ensure that source + id is unique.
+  uint64 id = 1;
+  // Source is the unique identifier of the event source (sender), should not be empty, max 64 bytes.
+  string source = 2 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+    example: "com.example.myapp"
+  }];
+  // Subject is more granular than source,
+  // and can be used to identify different types of events within the same source.
+  // If specified, not empty, max 128 bytes.
+  optional string subject = 3 [(buf.validate.field).string = {
+    max_bytes: 128
+    min_len: 1
+    example: "user"
+  }];
+  // The type of the event, which is not restricted by EventBridge,
+  // as long as it is unique under the corresponding source, not empty, max 64 bytes.
+  string type = 4 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+    example: "user.created"
+  }];
+  // The time the event was generated, set by the sender.
+  google.protobuf.Timestamp time = 5;
+  // Event data, related to specific domain scenarios,
+  // follows the schema determined by source + type, max 65536 bytes.
+  string data = 7 [(buf.validate.field).string = {max_bytes: 65536}];
+  // The content type of the data field, which is used to describe
+  // the serialization format of the data field.
+  // Only application/json is supported for now.
+  string datacontenttype = 8 [(buf.validate.field).string = {
+    in: ["application/json"]
+  }];
+}
+
+// Post event request parameters.
+// If the source + type does not exist, return SOURCE_TYPE_NOT_FOUND.
+// If the DataBus corresponding to source + type is deleted, DATA_BUS_REMOVED will be returned.
+// If the event data fails to pass the schema verification, EVENT_DATA_NOT_VALID will be returned.
+message PostEventRequest {
+  // Event data, related to specific domain scenarios.
+  Event event = 1 [(buf.validate.field).required = true];
+  // If the user sets the publication time,
+  // the event will be delivered downstream at the time specified by pub_time (delayed delivery).
+  google.protobuf.Timestamp pub_time = 2;
+  // Retry strategy for event delivery.
+  // If RETRY_STRATEGY_UNSPECIFIED is specified, RETRY_STRATEGY_EXPONENTIAL_DECAY will be used.
+  // If target's retry_strategy is specified, any specified strategy here will be ignored
+  // and the target's strategy will be used.
+  RetryStrategy retry_strategy = 3 [(buf.validate.field).enum = {defined_only: true}];
+}
+
+// Post event response parameters.
+message PostEventResponse {
+  // Event ID, which is the same as the ID of the event in the request.
+  uint64 id = 1;
+  // The ID of the message in the MQ, which can be used to retrieve the message in the MQ.
+  string message_id = 2;
+  // The key of the message in the MQ, which can be used to retrieve the message in the MQ.
+  string message_key = 3;
+  // The trace ID of the event, which can be used to trace the event.
+  string trace_id = 4;
+}
+
+// Event extension, used to carry additional information about the event.
+// Only used in EventBridge internal communication.
+message EventExt {
+  // Event data, related to specific domain scenarios.
+  Event event = 1;
+  // The name of the event bus, which is used to store the event.
+  string bus_name = 2;
+  // The name of the event rule, which is used to route target events.
+  string rule_name = 3;
+  // Target ID, indicating which target the event needs to be pushed to.
+  uint64 target_id = 4;
+  // Retry strategy for event delivery.
+  RetryStrategy retry_strategy = 5;
+  // gRPC metadata, used to carry transport layer information.
+  map<string, string> metadata = 6;
+}
+
+// List Schema parameters.
+// If source + type is specified, at most one record will be returned,
+// which is optimized for caching.
+message ListSchemaRequest {
+  // Filter by source. If specified, not empty, max 64 bytes.
+  optional string source = 1 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+    example: "com.example.myapp"
+  }];
+  // Filter by type. If specified, not empty, max 64 bytes.
+  optional string type = 2 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+    example: "user.created"
+  }];
+  // Filter by bus_name. If specified, not empty, max 64 bytes.
+  optional string bus_name = 3 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+    example: "default"
+  }];
+  // Filter by time. Accurate to milliseconds.
+  google.protobuf.Timestamp time = 4;
+}
+
+// Event schema.
+message Schema {
+  // Event source (sender) unique identifier.
+  string source = 1;
+  // Event type unique identifier under the source.
+  string type = 2;
+  // The name of the event bus to which the event source + type is bound.
+  string bus_name = 3;
+  // JSON Schema definition that fully describes the event data structure and format.
+  string spec = 4;
+  // The time the event schema was created.
+  google.protobuf.Timestamp time = 5;
+}
+
+// List Schema response parameters.
+message ListSchemaResponse {
+  // Event schema definition.
+  repeated Schema schemas = 1;
+}
+
+// CreateSchemaRequest is the request parameter for creating an event source.
+// If source + type is duplicated, SOURCE_TYPE_REPEAT will be returned.
+// If the spec syntax check fails, SCHEMA_SYNTAX_ERROR will be returned.
+// If bus_name does not exist, DATA_BUS_NOT_FOUND will be returned.
+message CreateSchemaRequest {
+  // Event source (sender) unique identifier. Not empty, max 64 bytes.
+  string source = 1 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+    example: "com.example.myapp"
+  }];
+  // Event type unique identifier under the source. Not empty, max 64 bytes.
+  string type = 2 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+    example: "user.created"
+  }];
+  // Bus name bound to the event source and type, not empty, max 64 bytes.
+  string bus_name = 3 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+    example: "default"
+  }];
+  // JSON Schema definition that fully describes the event data structure and format.
+  // Not empty, max 1024 bytes.
+  string spec = 4 [(buf.validate.field).string = {
+    max_bytes: 1024
+    min_bytes: 3
+  }];
+}
+
+// CreateSchemaResponse is the response parameter for creating an event source.
+message CreateSchemaResponse {}
+
+// UpdateSchemaRequest is the request parameter for updating the event source.
+// If source + type does not exist, SCHEMA_NOT_FOUND will be returned.
+// If bus_name does not exist, DATA_BUS_NOT_FOUND will be returned.
+message UpdateSchemaRequest {
+  // Event source (sender) unique identifier. Not empty, max 64 bytes.
+  string source = 1 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+    example: "com.example.myapp"
+  }];
+  // Event type unique identifier under the source. Not empty, max 64 bytes.
+  string type = 2 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+    example: "user.created"
+  }];
+  // Bus name bound to the event source and type,
+  // if specified, update the original bus, not empty, max 64 bytes.
+  optional string bus_name = 3 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+    example: "default"
+  }];
+  // JSON Schema definition that fully describes the event data structure and format.
+  // If specified, update the original spec, not empty, max 1024 bytes.
+  optional string spec = 4 [(buf.validate.field).string = {
+    max_bytes: 1024
+    min_bytes: 3
+  }];
+}
+
+// UpdateSchemaResponse is the response parameter for updating the event source.
+message UpdateSchemaResponse {}
+
+// DeleteSchemaRequest is the request parameter for deleting the event source.
+message DeleteSchemaRequest {
+  // Event source (sender) unique identifier. Not empty, max 64 bytes.
+  string source = 1 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+    example: "com.example.myapp"
+  }];
+  // Event type unique identifier under the source. Not empty, max 64 bytes.
+  optional string type = 2 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+    example: "user.created"
+  }];
+}
+
+// DeleteSchemaResponse is the response parameter for deleting the event source.
+message DeleteSchemaResponse {}
+
+// ListBusRequest is the request parameter for querying the event bus.
+message ListBusRequest {
+  // Event bus name prefix, if specified, not empty, max 64 bytes.
+  optional string prefix = 1 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+  }];
+  // Limit the maximum number of records returned each time,
+  // can be used with NextToken to implement paging capability.
+  // The maximum number of records returned each time does not exceed 100, default 0 means 100.
+  int32 limit = 2 [(buf.validate.field).int32 = {lte: 100}];
+  // The next token, used to query the next page of results. 0 means no more.
+  uint64 next_token = 3;
+}
+
+// Event bus work mode.
+enum BusWorkMode {
+  // Unspecified mode. Equivalent to BUS_WORK_MODE_CONCURRENTLY.
+  BUS_WORK_MODE_UNSPECIFIED = 0;
+  // Concurrent, the same source + type event can be consumed concurrently.
+  BUS_WORK_MODE_CONCURRENTLY = 1;
+  // Orderly, the same source + type event is consumed in order.
+  BUS_WORK_MODE_ORDERLY = 2;
+}
+
+// ListBusResponse is the response parameter for querying the event bus.
+message ListBusResponse {
+  // Event bus definition.
+  message Bus {
+    // Event bus name.
+    string name = 1;
+    // Event bus work mode.
+    BusWorkMode mode = 2;
+    // The topic name where the source event is stored.
+    string source_topic = 3;
+    // The topic name where the timed delivery event is stored.
+    string source_delay_topic = 4;
+    // The topic name where the event is retried if the delivery fails and the retry strategy is exponential decay.
+    string target_exp_decay_topic = 5;
+    // The topic name where the event is retried if the delivery fails and the retry strategy is backoff.
+    string target_backoff_topic = 6;
+  }
+  // All event buses that meet the conditions.
+  repeated Bus buses = 1;
+  // The next token, used to query the next page of results. 0 means no more.
+  uint64 next_token = 2;
+}
+
+// CreateBusRequest is the request parameter for creating an event bus.
+// If topic empty, TOPIC_EMPTY will be returned.
+message CreateBusRequest {
+  // Event bus name, not empty, max 64 bytes.
+  string name = 1 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+  }];
+  // Event bus work mode.
+  BusWorkMode mode = 2 [(buf.validate.field).enum = {defined_only: true}];
+  // The topic name where the source event is stored.
+  // If not specified, the default topic name EBInterBus{name} is used.
+  // You can specify the topic of the built-in MQ, such as FakerTopic.
+  // Also, you can specify the topic of the remote MQ that eb can access,
+  // such as rocketmq://10.10.10.1:500/remoteTopic which means the remote MQ endpoint is
+  // 10.10.10.1:500 and the topic where the source event is stored is remoteTopic.
+  optional string source_topic = 3 [(buf.validate.field).string = {
+    max_bytes: 128
+    min_len: 1
+    uri: true
+  }];
+  // The topic name where the timed delivery event is stored.
+  // If not specified, the default topic name EBInterDelayBus{name} is used.
+  // You can specify the topic of the built-in MQ, such as FakerTopic.
+  // Also, you can specify the topic of the remote MQ that eb can access,
+  // such as rocketmq://10.10.10.1:500/remoteTopic which means the remote MQ endpoint is
+  // 10.10.10.1:500 and the topic where the timed delivery event is stored is remoteTopic.
+  optional string source_delay_topic = 4 [(buf.validate.field).string = {
+    max_bytes: 128
+    min_len: 1
+    uri: true
+  }];
+  // The topic name where the event is retried if the delivery fails and the retry strategy is exponential decay.
+  // If not specified, the default topic name EBInterTargetExpDecayBus{name} is used.
+  // You can specify the topic of the built-in MQ, such as FakerTopic.
+  // Also, you can specify the topic of the remote MQ that eb can access,
+  // such as rocketmq://10.10.10.1:500/remoteTopic which means the remote MQ endpoint is
+  // 10.10.10.1:500  and the topic where the event is retried if the delivery fails is remoteTopic.
+  optional string target_exp_decay_topic = 5 [(buf.validate.field).string = {
+    max_bytes: 128
+    min_len: 1
+    uri: true
+  }];
+  // The topic name where the event is retried if the delivery fails and the retry strategy is backoff.
+  // If not specified, the default topic name EBInterTargetBackoffBus{name} is used.
+  // You can specify the topic of the built-in MQ, such as FakerTopic.
+  // Also, you can specify the topic of the remote MQ that eb can access,
+  // such as rocketmq://10.10.10.1:500/remoteTopic which means the remote MQ endpoint is
+  // 10.10.10.1:500  and the topic where the event is retried if the delivery fails is remoteTopic.
+  optional string target_backoff_topic = 6 [(buf.validate.field).string = {
+    max_bytes: 128
+    min_len: 1
+    uri: true
+  }];
+}
+
+// CreateBusResponse is the response parameter for creating an event bus.
+message CreateBusResponse {
+  // Event bus ID.
+  uint64 id = 1;
+}
+
+// DeleteBusRequest is the request parameter for deleting the event bus.
+// When the bus is deleted, all rules under the bus will be deleted.
+// If the name does not exist, DATA_BUS_NOT_FOUND will be returned.
+message DeleteBusRequest {
+  // Event bus name, not empty, max 64 bytes.
+  string name = 1 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+  }];
+}
+
+// DeleteBusResponse is the response parameter for deleting the event bus.
+message DeleteBusResponse {}
+
+// RuleStatus is the status of the event rule.
+enum RuleStatus {
+  // Unspecified status. Equivalent to RULE_STATUS_ENABLE.
+  RULE_STATUS_UNSPECIFIED = 0;
+  // Rule is enabled.
+  RULE_STATUS_ENABLE = 1;
+  // Rule is disabled.
+  RULE_STATUS_DISABLE = 2;
+}
+
+// ListRuleRequest is the request parameter for querying the event rule.
+message ListRuleRequest {
+  // Filter by rule name prefix. if specified, not empty, max 64 bytes.
+  optional string prefix = 1 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+  }];
+  // Filter by bus_name. Not empty, max 64 bytes.
+  string bus_name = 2 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+  }];
+  // Filter by rule status.
+  RuleStatus status = 3;
+  // The maximum number of records returned each time,
+  // can be used with NextToken to implement paging capability.
+  // The maximum number of records returned each time does not exceed 100, default 0 means 100.
+  int32 limit = 4 [(buf.validate.field).int32 = {lte: 100}];
+  // The next token, used to query the next page of results. 0 means no more.
+  uint64 next_token = 5;
+}
+
+// Target parameter, defines how to convert events and deliver them downstream.
+message TargetParam {
+  // The key of the target parameter, max 64 bytes.
+  string key = 1 [(buf.validate.field).string = {max_bytes: 64}];
+  // The form defines how the value of the target parameter is generated. Not empty, max 64 bytes.
+  string form = 2 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+  }];
+  // The value of the target parameter, max 256 bytes.
+  string value = 3 [(buf.validate.field).string = {max_bytes: 256}];
+  // Only used when form is TEMPLATE.
+  // The template is a string that contains placeholders such as ${key1}, ${key2}, etc.
+  // The placeholders will be replaced by the corresponding value in the target parameter value.
+  // The target parameter value is a JSON string, and the placeholders are the keys in the JSON string.
+  // The value of JSON string can be a JSONPath expression, which is used to extract the value from the event data.
+  // Finally, the target parameter value is replaced by the template result.
+  // If form is TEMPLATE, template is required, not empty, max 1024 bytes.
+  optional string template = 4 [(buf.validate.field).string = {
+    max_bytes: 1024
+    min_len: 1
+  }];
+}
+
+// Target parameter, defines how to convert events and deliver them downstream.
+message Target {
+  // Target ID, the target ID under the same Rule will not be repeated,
+  // and the later Target with the same ID will override the previous declaration.
+  uint64 id = 1;
+  // The target type, not empty, max 64 bytes.
+  string type = 2 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+  }];
+  // The target parameter, the key of the target parameter is unique under the same target,
+  // and the later target parameter with the same key will override the previous declaration.
+  repeated TargetParam params = 3;
+  // Retry strategy for event delivery.
+  // If RETRY_STRATEGY_UNSPECIFIED is specified, event's retry_strategy will be used,
+  // otherwise the specified strategy will override the event's retry_strategy.
+  RetryStrategy retry_strategy = 4 [(buf.validate.field).enum = {defined_only: true}];
+}
+
+// ListRuleResponse is the response parameter for querying the event rule.
+message ListRuleResponse {
+  // Event rule definition.
+  message Rule {
+    // Event rule name.
+    string name = 1;
+    // Event bus name.
+    string bus_name = 2;
+    // Event rule status.
+    RuleStatus status = 3;
+    // Event matching pattern which is used to determine whether the event matches the rule.
+    string pattern = 4;
+    // Event target, defines how to convert events and deliver them downstream.
+    repeated Target targets = 5;
+  }
+  // All event rules that meet the conditions.
+  repeated Rule rules = 1;
+  // The next token, used to query the next page of results. 0 means no more.
+  uint64 next_token = 2;
+}
+
+// CreateRuleRequest is the request parameter for creating an event rule.
+// If bus_name does not exist, DATA_BUS_NOT_FOUND will be returned.
+// If the target parameter syntax is incorrect, TARGET_PARAM_SYNTAX_ERROR will be returned.
+// If the pattern parameter syntax is incorrect, PATTERN_SYNTAX_ERROR will be returned.
+// If the rule name is duplicated under the same bus_name, RULE_NAME_REPEAT will be returned.
+message CreateRuleRequest {
+  // Event rule name, not empty, max 64 bytes.
+  string name = 1 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+  }];
+  // Event bus name to which the rule belongs, not empty, max 64 bytes.
+  string bus_name = 2 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+  }];
+  // Event rule status. Default ENABLE.
+  RuleStatus status = 3;
+  // Event matching pattern which is used to determine whether the event matches the rule.
+  // It is a JSON string, max 1024 bytes.
+  string pattern = 4 [(buf.validate.field).string = {
+    max_bytes: 1024
+    min_bytes: 3
+  }];
+  // Event target, defines how to convert events and deliver them downstream.
+  repeated Target targets = 5;
+}
+
+// CreateRuleResponse is the response parameter for creating an event rule.
+message CreateRuleResponse {
+  // Event rule ID.
+  uint64 id = 1;
+}
+
+// UpdateRuleRequest is the request parameter for updating the event rule.
+// If name + bus_name does not exist, RULE_NOT_FOUND will be returned.
+// If the pattern parameter syntax is incorrect, PATTERN_SYNTAX_ERROR will be returned.
+message UpdateRuleRequest {
+  // Event rule name, not empty, max 64 bytes.
+  string name = 1 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+  }];
+  // Event bus name to which the rule belongs, not empty, max 64 bytes.
+  string bus_name = 2 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+  }];
+  // If specified, update rule status.
+  RuleStatus status = 3;
+  // If specified, update the pattern parameter. It is a JSON string, not empty, max 1024 bytes.
+  optional string pattern = 4 [(buf.validate.field).string = {
+    max_bytes: 1024
+    min_bytes: 3
+  }];
+}
+
+// UpdateRuleResponse is the response parameter for updating the event rule.
+message UpdateRuleResponse {}
+
+// DeleteRuleRequest is the request parameter for deleting the event rule.
+// If name + bus_name does not exist, RULE_NOT_FOUND will be returned.
+message DeleteRuleRequest {
+  // Event rule name, not empty, max 64 bytes.
+  string name = 1 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+  }];
+  // Event bus name to which the rule belongs, not empty, max 64 bytes.
+  string bus_name = 2 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+  }];
+}
+
+// DeleteRuleResponse is the response parameter for deleting the event rule.
+message DeleteRuleResponse {}
+
+// CreateTargetsRequest is the request parameter for creating one or more rule delivery targets under a rule.
+// If the rule_name + bus_name corresponding rule does not exist, RULE_NOT_FOUND will be returned.
+// If the target parameter syntax is incorrect, TARGET_PARAM_SYNTAX_ERROR will be returned.
+message CreateTargetsRequest {
+  // Event rule name, not empty, max 64 bytes.
+  string rule_name = 1 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+  }];
+  // Event bus name to which the rule belongs, not empty, max 64 bytes.
+  string bus_name = 2 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+  }];
+  // Event target, defines how to convert events and deliver them downstream.
+  repeated Target targets = 3;
+}
+
+// CreateTargetsResponse is the response parameter for creating one or more rule delivery targets under a rule.
+message CreateTargetsResponse {}
+
+// DeleteTargetsRequest is the request parameter for deleting one or more rule delivery targets under a rule.
+message DeleteTargetsRequest {
+  // Event rule name, not empty, max 64 bytes.
+  string rule_name = 1 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+  }];
+  // Event bus name to which the rule belongs, not empty, max 64 bytes.
+  string bus_name = 2 [(buf.validate.field).string = {
+    max_bytes: 64
+    min_len: 1
+  }];
+  // Target ID, indicating which target the event needs to be pushed to.
+  repeated uint64 targets = 3;
+}
+
+// DeleteTargetsResponse is the response parameter for deleting one or more rule delivery targets under a rule.
+message DeleteTargetsResponse {}
+
+// ListDispatcherSchemaRequest is the request parameter for querying the Dispatcher schema.
+message ListDispatcherSchemaRequest {
+  // Filter by Dispatcher type. If specified, not empty, max 64 bytes.
+  repeated string types = 1 [(buf.validate.field).repeated = {
+    items: {
+      string: {
+        min_len: 1
+        max_bytes: 64
+      }
+    }
+  }];
+}
+
+// ListDispatcherSchemaResponse is the response parameter for querying the Dispatcher schema.
+message ListDispatcherSchemaResponse {
+  // Dispatcher schema definition.
+  message DispatcherSchema {
+    // Dispatcher type.
+    string type = 1;
+    // JSON Schema definition that fully describes the target parameter structure and format.
+    string params_schema = 2;
+  }
+  // dispatcher parameters schema
+  repeated DispatcherSchema dispatcher_schemas = 1;
+}

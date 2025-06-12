@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package eventbridge.service.v1;
+
+import "errors/errors.proto";
+
+// enumerate all error reasons for EventBridgeService service
+enum EventBridgeServiceErrorReason {
+  option (errors.default_code) = 500;
+
+  // unspecified value, not used, service internal error Reason field is generally an empty string
+  ERROR_REASON_UNSPECIFIED = 0;
+
+  //  {
+  //    "code": 400,
+  //    "reason": "SOURCE_TYPE_REPEAT",
+  //    "message": "under each source, ensure that the type is unique"
+  //  }
+  SOURCE_TYPE_REPEAT = 1 [(errors.code) = 400];
+
+  SCHEMA_NOT_FOUND = 2 [(errors.code) = 400];
+  BUS_NAME_REPEAT = 3 [(errors.code) = 400];
+  DATA_BUS_NOT_FOUND = 4 [(errors.code) = 400];
+  RULE_NOT_FOUND = 5 [(errors.code) = 400];
+  SCHEMA_SYNTAX_ERROR = 6 [(errors.code) = 400];
+  TARGET_PARAM_SYNTAX_ERROR = 7 [(errors.code) = 400];
+  RULE_NAME_REPEAT = 8 [(errors.code) = 400];
+  SOURCE_TYPE_NOT_FOUND = 9 [(errors.code) = 400];
+  DATA_BUS_REMOVED = 10 [(errors.code) = 400];
+  EVENT_DATA_NOT_VALID = 11 [(errors.code) = 400];
+  PATTERN_SYNTAX_ERROR = 12 [(errors.code) = 400];
+  TOPIC_EMPTY = 13 [(errors.code) = 400];
+}

@@ -1,0 +1,938 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: EventBridgeService API
+    description: EventBridgeService is the service that provides EventBridge API.
+    version: 0.0.1
+paths:
+    /v1/eventbridge/bus:
+        post:
+            tags:
+                - EventBridgeService
+            description: Create event bus which is used to receive event
+            operationId: EventBridgeService_CreateBus
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateBusRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateBusResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+        delete:
+            tags:
+                - EventBridgeService
+            description: Update event bus
+            operationId: EventBridgeService_DeleteBus
+            parameters:
+                - name: name
+                  in: query
+                  description: Event bus name, not empty, max 64 bytes.
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteBusResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /v1/eventbridge/buses:
+        get:
+            tags:
+                - EventBridgeService
+            description: List event bus that match the condition
+            operationId: EventBridgeService_ListBus
+            parameters:
+                - name: prefix
+                  in: query
+                  description: Event bus name prefix, if specified, not empty, max 64 bytes.
+                  schema:
+                    type: string
+                - name: limit
+                  in: query
+                  description: |-
+                    Limit the maximum number of records returned each time,
+                     can be used with NextToken to implement paging capability.
+                     The maximum number of records returned each time does not exceed 100, default 0 means 100.
+                  schema:
+                    type: integer
+                    format: int32
+                - name: nextToken
+                  in: query
+                  description: The next token, used to query the next page of results. 0 means no more.
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListBusResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /v1/eventbridge/dispatcher/schemas:
+        get:
+            tags:
+                - EventBridgeService
+            description: |-
+                List event dispatcher schema which define how to claim Dispatcher
+                 Dispatcher is used to deliver event to target
+            operationId: EventBridgeService_ListDispatcherSchema
+            parameters:
+                - name: types
+                  in: query
+                  description: Filter by Dispatcher type. If specified, not empty, max 64 bytes.
+                  schema:
+                    type: array
+                    items:
+                        type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListDispatcherSchemaResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /v1/eventbridge/event:
+        post:
+            tags:
+                - EventBridgeService
+            description: Post event to eventbridge
+            operationId: EventBridgeService_PostEvent
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/PostEventRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PostEventResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /v1/eventbridge/rule:
+        post:
+            tags:
+                - EventBridgeService
+            description: Create event rule which define the rule to route event
+            operationId: EventBridgeService_CreateRule
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateRuleRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateRuleResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+        delete:
+            tags:
+                - EventBridgeService
+            description: Delete event rule
+            operationId: EventBridgeService_DeleteRule
+            parameters:
+                - name: name
+                  in: query
+                  description: Event rule name, not empty, max 64 bytes.
+                  schema:
+                    type: string
+                - name: busName
+                  in: query
+                  description: Event bus name to which the rule belongs, not empty, max 64 bytes.
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteRuleResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+        patch:
+            tags:
+                - EventBridgeService
+            description: Update event rule
+            operationId: EventBridgeService_UpdateRule
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateRuleRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateRuleResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /v1/eventbridge/rules:
+        get:
+            tags:
+                - EventBridgeService
+            description: List event rule that match the condition
+            operationId: EventBridgeService_ListRule
+            parameters:
+                - name: prefix
+                  in: query
+                  description: Filter by rule name prefix. if specified, not empty, max 64 bytes.
+                  schema:
+                    type: string
+                - name: busName
+                  in: query
+                  description: Filter by bus_name. Not empty, max 64 bytes.
+                  schema:
+                    type: string
+                - name: status
+                  in: query
+                  description: Filter by rule status.
+                  schema:
+                    type: integer
+                    format: enum
+                - name: limit
+                  in: query
+                  description: |-
+                    The maximum number of records returned each time,
+                     can be used with NextToken to implement paging capability.
+                     The maximum number of records returned each time does not exceed 100, default 0 means 100.
+                  schema:
+                    type: integer
+                    format: int32
+                - name: nextToken
+                  in: query
+                  description: The next token, used to query the next page of results. 0 means no more.
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListRuleResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /v1/eventbridge/schema:
+        post:
+            tags:
+                - EventBridgeService
+            description: Create event schema which define the event data structure and can bind to a bus
+            operationId: EventBridgeService_CreateSchema
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateSchemaRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateSchemaResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+        delete:
+            tags:
+                - EventBridgeService
+            description: Delete event schema
+            operationId: EventBridgeService_DeleteSchema
+            parameters:
+                - name: source
+                  in: query
+                  description: Event source (sender) unique identifier. Not empty, max 64 bytes.
+                  schema:
+                    type: string
+                - name: type
+                  in: query
+                  description: Event type unique identifier under the source. Not empty, max 64 bytes.
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteSchemaResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+        patch:
+            tags:
+                - EventBridgeService
+            description: Update event schema
+            operationId: EventBridgeService_UpdateSchema
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateSchemaRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateSchemaResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /v1/eventbridge/schemas:
+        get:
+            tags:
+                - EventBridgeService
+            description: List event schema that match the condition
+            operationId: EventBridgeService_ListSchema
+            parameters:
+                - name: source
+                  in: query
+                  description: Filter by source. If specified, not empty, max 64 bytes.
+                  schema:
+                    type: string
+                - name: type
+                  in: query
+                  description: Filter by type. If specified, not empty, max 64 bytes.
+                  schema:
+                    type: string
+                - name: busName
+                  in: query
+                  description: Filter by bus_name. If specified, not empty, max 64 bytes.
+                  schema:
+                    type: string
+                - name: time
+                  in: query
+                  description: Filter by time. Accurate to milliseconds.
+                  schema:
+                    type: string
+                    format: date-time
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListSchemaResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /v1/eventbridge/targets:
+        post:
+            tags:
+                - EventBridgeService
+            description: List event target that match the condition
+            operationId: EventBridgeService_CreateTargets
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateTargetsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateTargetsResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+        delete:
+            tags:
+                - EventBridgeService
+            description: Delete event target
+            operationId: EventBridgeService_DeleteTargets
+            parameters:
+                - name: ruleName
+                  in: query
+                  description: Event rule name, not empty, max 64 bytes.
+                  schema:
+                    type: string
+                - name: busName
+                  in: query
+                  description: Event bus name to which the rule belongs, not empty, max 64 bytes.
+                  schema:
+                    type: string
+                - name: targets
+                  in: query
+                  description: Target ID, indicating which target the event needs to be pushed to.
+                  schema:
+                    type: array
+                    items:
+                        type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DeleteTargetsResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+components:
+    schemas:
+        CreateBusRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: Event bus name, not empty, max 64 bytes.
+                mode:
+                    type: integer
+                    description: Event bus work mode.
+                    format: enum
+                sourceTopic:
+                    type: string
+                    description: |-
+                        The topic name where the source event is stored.
+                         If not specified, the default topic name EBInterBus{name} is used.
+                         You can specify the topic of the built-in MQ, such as FakerTopic.
+                         Also, you can specify the topic of the remote MQ that eb can access,
+                         such as rocketmq://10.10.10.1:500/remoteTopic which means the remote MQ endpoint is
+                         10.10.10.1:500 and the topic where the source event is stored is remoteTopic.
+                sourceDelayTopic:
+                    type: string
+                    description: |-
+                        The topic name where the timed delivery event is stored.
+                         If not specified, the default topic name EBInterDelayBus{name} is used.
+                         You can specify the topic of the built-in MQ, such as FakerTopic.
+                         Also, you can specify the topic of the remote MQ that eb can access,
+                         such as rocketmq://10.10.10.1:500/remoteTopic which means the remote MQ endpoint is
+                         10.10.10.1:500 and the topic where the timed delivery event is stored is remoteTopic.
+                targetExpDecayTopic:
+                    type: string
+                    description: |-
+                        The topic name where the event is retried if the delivery fails and the retry strategy is exponential decay.
+                         If not specified, the default topic name EBInterTargetExpDecayBus{name} is used.
+                         You can specify the topic of the built-in MQ, such as FakerTopic.
+                         Also, you can specify the topic of the remote MQ that eb can access,
+                         such as rocketmq://10.10.10.1:500/remoteTopic which means the remote MQ endpoint is
+                         10.10.10.1:500  and the topic where the event is retried if the delivery fails is remoteTopic.
+                targetBackoffTopic:
+                    type: string
+                    description: |-
+                        The topic name where the event is retried if the delivery fails and the retry strategy is backoff.
+                         If not specified, the default topic name EBInterTargetBackoffBus{name} is used.
+                         You can specify the topic of the built-in MQ, such as FakerTopic.
+                         Also, you can specify the topic of the remote MQ that eb can access,
+                         such as rocketmq://10.10.10.1:500/remoteTopic which means the remote MQ endpoint is
+                         10.10.10.1:500  and the topic where the event is retried if the delivery fails is remoteTopic.
+            description: |-
+                CreateBusRequest is the request parameter for creating an event bus.
+                 If topic empty, TOPIC_EMPTY will be returned.
+        CreateBusResponse:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Event bus ID.
+            description: CreateBusResponse is the response parameter for creating an event bus.
+        CreateRuleRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: Event rule name, not empty, max 64 bytes.
+                busName:
+                    type: string
+                    description: Event bus name to which the rule belongs, not empty, max 64 bytes.
+                status:
+                    type: integer
+                    description: Event rule status. Default ENABLE.
+                    format: enum
+                pattern:
+                    type: string
+                    description: |-
+                        Event matching pattern which is used to determine whether the event matches the rule.
+                         It is a JSON string, max 1024 bytes.
+                targets:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Target'
+                    description: Event target, defines how to convert events and deliver them downstream.
+            description: |-
+                CreateRuleRequest is the request parameter for creating an event rule.
+                 If bus_name does not exist, DATA_BUS_NOT_FOUND will be returned.
+                 If the target parameter syntax is incorrect, TARGET_PARAM_SYNTAX_ERROR will be returned.
+                 If the pattern parameter syntax is incorrect, PATTERN_SYNTAX_ERROR will be returned.
+                 If the rule name is duplicated under the same bus_name, RULE_NAME_REPEAT will be returned.
+        CreateRuleResponse:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Event rule ID.
+            description: CreateRuleResponse is the response parameter for creating an event rule.
+        CreateSchemaRequest:
+            type: object
+            properties:
+                source:
+                    type: string
+                    description: Event source (sender) unique identifier. Not empty, max 64 bytes.
+                type:
+                    type: string
+                    description: Event type unique identifier under the source. Not empty, max 64 bytes.
+                busName:
+                    type: string
+                    description: Bus name bound to the event source and type, not empty, max 64 bytes.
+                spec:
+                    type: string
+                    description: |-
+                        JSON Schema definition that fully describes the event data structure and format.
+                         Not empty, max 1024 bytes.
+            description: |-
+                CreateSchemaRequest is the request parameter for creating an event source.
+                 If source + type is duplicated, SOURCE_TYPE_REPEAT will be returned.
+                 If the spec syntax check fails, SCHEMA_SYNTAX_ERROR will be returned.
+                 If bus_name does not exist, DATA_BUS_NOT_FOUND will be returned.
+        CreateSchemaResponse:
+            type: object
+            properties: {}
+            description: CreateSchemaResponse is the response parameter for creating an event source.
+        CreateTargetsRequest:
+            type: object
+            properties:
+                ruleName:
+                    type: string
+                    description: Event rule name, not empty, max 64 bytes.
+                busName:
+                    type: string
+                    description: Event bus name to which the rule belongs, not empty, max 64 bytes.
+                targets:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Target'
+                    description: Event target, defines how to convert events and deliver them downstream.
+            description: |-
+                CreateTargetsRequest is the request parameter for creating one or more rule delivery targets under a rule.
+                 If the rule_name + bus_name corresponding rule does not exist, RULE_NOT_FOUND will be returned.
+                 If the target parameter syntax is incorrect, TARGET_PARAM_SYNTAX_ERROR will be returned.
+        CreateTargetsResponse:
+            type: object
+            properties: {}
+            description: CreateTargetsResponse is the response parameter for creating one or more rule delivery targets under a rule.
+        DeleteBusResponse:
+            type: object
+            properties: {}
+            description: DeleteBusResponse is the response parameter for deleting the event bus.
+        DeleteRuleResponse:
+            type: object
+            properties: {}
+            description: DeleteRuleResponse is the response parameter for deleting the event rule.
+        DeleteSchemaResponse:
+            type: object
+            properties: {}
+            description: DeleteSchemaResponse is the response parameter for deleting the event source.
+        DeleteTargetsResponse:
+            type: object
+            properties: {}
+            description: DeleteTargetsResponse is the response parameter for deleting one or more rule delivery targets under a rule.
+        Event:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Event ID, specified by the sender. The sender must ensure that source + id is unique.
+                source:
+                    type: string
+                    description: Source is the unique identifier of the event source (sender), should not be empty, max 64 bytes.
+                subject:
+                    type: string
+                    description: |-
+                        Subject is more granular than source,
+                         and can be used to identify different types of events within the same source.
+                         If specified, not empty, max 128 bytes.
+                type:
+                    type: string
+                    description: |-
+                        The type of the event, which is not restricted by EventBridge,
+                         as long as it is unique under the corresponding source, not empty, max 64 bytes.
+                time:
+                    type: string
+                    description: The time the event was generated, set by the sender.
+                    format: date-time
+                data:
+                    type: string
+                    description: |-
+                        Event data, related to specific domain scenarios,
+                         follows the schema determined by source + type, max 65536 bytes.
+                datacontenttype:
+                    type: string
+                    description: |-
+                        The content type of the data field, which is used to describe
+                         the serialization format of the data field.
+                         Only application/json is supported for now.
+            description: Event is the basic unit of EventBridge, which is used to carry event data.
+        GoogleProtobufAny:
+            type: object
+            properties:
+                '@type':
+                    type: string
+                    description: The type of the serialized message.
+            additionalProperties: true
+            description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
+        ListBusResponse:
+            type: object
+            properties:
+                buses:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/ListBusResponse_Bus'
+                    description: All event buses that meet the conditions.
+                nextToken:
+                    type: string
+                    description: The next token, used to query the next page of results. 0 means no more.
+            description: ListBusResponse is the response parameter for querying the event bus.
+        ListBusResponse_Bus:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: Event bus name.
+                mode:
+                    type: integer
+                    description: Event bus work mode.
+                    format: enum
+                sourceTopic:
+                    type: string
+                    description: The topic name where the source event is stored.
+                sourceDelayTopic:
+                    type: string
+                    description: The topic name where the timed delivery event is stored.
+                targetExpDecayTopic:
+                    type: string
+                    description: The topic name where the event is retried if the delivery fails and the retry strategy is exponential decay.
+                targetBackoffTopic:
+                    type: string
+                    description: The topic name where the event is retried if the delivery fails and the retry strategy is backoff.
+            description: Event bus definition.
+        ListDispatcherSchemaResponse:
+            type: object
+            properties:
+                dispatcherSchemas:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/ListDispatcherSchemaResponse_DispatcherSchema'
+                    description: dispatcher parameters schema
+            description: ListDispatcherSchemaResponse is the response parameter for querying the Dispatcher schema.
+        ListDispatcherSchemaResponse_DispatcherSchema:
+            type: object
+            properties:
+                type:
+                    type: string
+                    description: Dispatcher type.
+                paramsSchema:
+                    type: string
+                    description: JSON Schema definition that fully describes the target parameter structure and format.
+            description: Dispatcher schema definition.
+        ListRuleResponse:
+            type: object
+            properties:
+                rules:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/ListRuleResponse_Rule'
+                    description: All event rules that meet the conditions.
+                nextToken:
+                    type: string
+                    description: The next token, used to query the next page of results. 0 means no more.
+            description: ListRuleResponse is the response parameter for querying the event rule.
+        ListRuleResponse_Rule:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: Event rule name.
+                busName:
+                    type: string
+                    description: Event bus name.
+                status:
+                    type: integer
+                    description: Event rule status.
+                    format: enum
+                pattern:
+                    type: string
+                    description: Event matching pattern which is used to determine whether the event matches the rule.
+                targets:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Target'
+                    description: Event target, defines how to convert events and deliver them downstream.
+            description: Event rule definition.
+        ListSchemaResponse:
+            type: object
+            properties:
+                schemas:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Schema'
+                    description: Event schema definition.
+            description: List Schema response parameters.
+        PostEventRequest:
+            type: object
+            properties:
+                event:
+                    allOf:
+                        - $ref: '#/components/schemas/Event'
+                    description: Event data, related to specific domain scenarios.
+                pubTime:
+                    type: string
+                    description: |-
+                        If the user sets the publication time,
+                         the event will be delivered downstream at the time specified by pub_time (delayed delivery).
+                    format: date-time
+                retryStrategy:
+                    type: integer
+                    description: |-
+                        Retry strategy for event delivery.
+                         If RETRY_STRATEGY_UNSPECIFIED is specified, RETRY_STRATEGY_EXPONENTIAL_DECAY will be used.
+                         If target's retry_strategy is specified, any specified strategy here will be ignored
+                         and the target's strategy will be used.
+                    format: enum
+            description: |-
+                Post event request parameters.
+                 If the source + type does not exist, return SOURCE_TYPE_NOT_FOUND.
+                 If the DataBus corresponding to source + type is deleted, DATA_BUS_REMOVED will be returned.
+                 If the event data fails to pass the schema verification, EVENT_DATA_NOT_VALID will be returned.
+        PostEventResponse:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Event ID, which is the same as the ID of the event in the request.
+                messageId:
+                    type: string
+                    description: The ID of the message in the MQ, which can be used to retrieve the message in the MQ.
+                messageKey:
+                    type: string
+                    description: The key of the message in the MQ, which can be used to retrieve the message in the MQ.
+                traceId:
+                    type: string
+                    description: The trace ID of the event, which can be used to trace the event.
+            description: Post event response parameters.
+        Schema:
+            type: object
+            properties:
+                source:
+                    type: string
+                    description: Event source (sender) unique identifier.
+                type:
+                    type: string
+                    description: Event type unique identifier under the source.
+                busName:
+                    type: string
+                    description: The name of the event bus to which the event source + type is bound.
+                spec:
+                    type: string
+                    description: JSON Schema definition that fully describes the event data structure and format.
+                time:
+                    type: string
+                    description: The time the event schema was created.
+                    format: date-time
+            description: Event schema.
+        Status:
+            type: object
+            properties:
+                code:
+                    type: integer
+                    description: The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
+                    format: int32
+                message:
+                    type: string
+                    description: A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
+                details:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/GoogleProtobufAny'
+                    description: A list of messages that carry the error details.  There is a common set of message types for APIs to use.
+            description: 'The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).'
+        Target:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: |-
+                        Target ID, the target ID under the same Rule will not be repeated,
+                         and the later Target with the same ID will override the previous declaration.
+                type:
+                    type: string
+                    description: The target type, not empty, max 64 bytes.
+                params:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/TargetParam'
+                    description: |-
+                        The target parameter, the key of the target parameter is unique under the same target,
+                         and the later target parameter with the same key will override the previous declaration.
+                retryStrategy:
+                    type: integer
+                    description: |-
+                        Retry strategy for event delivery.
+                         If RETRY_STRATEGY_UNSPECIFIED is specified, event's retry_strategy will be used,
+                         otherwise the specified strategy will override the event's retry_strategy.
+                    format: enum
+            description: Target parameter, defines how to convert events and deliver them downstream.
+        TargetParam:
+            type: object
+            properties:
+                key:
+                    type: string
+                    description: The key of the target parameter, max 64 bytes.
+                form:
+                    type: string
+                    description: The form defines how the value of the target parameter is generated. Not empty, max 64 bytes.
+                value:
+                    type: string
+                    description: The value of the target parameter, max 256 bytes.
+                template:
+                    type: string
+                    description: |-
+                        Only used when form is TEMPLATE.
+                         The template is a string that contains placeholders such as ${key1}, ${key2}, etc.
+                         The placeholders will be replaced by the corresponding value in the target parameter value.
+                         The target parameter value is a JSON string, and the placeholders are the keys in the JSON string.
+                         The value of JSON string can be a JSONPath expression, which is used to extract the value from the event data.
+                         Finally, the target parameter value is replaced by the template result.
+                         If form is TEMPLATE, template is required, not empty, max 1024 bytes.
+            description: Target parameter, defines how to convert events and deliver them downstream.
+        UpdateRuleRequest:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: Event rule name, not empty, max 64 bytes.
+                busName:
+                    type: string
+                    description: Event bus name to which the rule belongs, not empty, max 64 bytes.
+                status:
+                    type: integer
+                    description: If specified, update rule status.
+                    format: enum
+                pattern:
+                    type: string
+                    description: If specified, update the pattern parameter. It is a JSON string, not empty, max 1024 bytes.
+            description: |-
+                UpdateRuleRequest is the request parameter for updating the event rule.
+                 If name + bus_name does not exist, RULE_NOT_FOUND will be returned.
+                 If the pattern parameter syntax is incorrect, PATTERN_SYNTAX_ERROR will be returned.
+        UpdateRuleResponse:
+            type: object
+            properties: {}
+            description: UpdateRuleResponse is the response parameter for updating the event rule.
+        UpdateSchemaRequest:
+            type: object
+            properties:
+                source:
+                    type: string
+                    description: Event source (sender) unique identifier. Not empty, max 64 bytes.
+                type:
+                    type: string
+                    description: Event type unique identifier under the source. Not empty, max 64 bytes.
+                busName:
+                    type: string
+                    description: |-
+                        Bus name bound to the event source and type,
+                         if specified, update the original bus, not empty, max 64 bytes.
+                spec:
+                    type: string
+                    description: |-
+                        JSON Schema definition that fully describes the event data structure and format.
+                         If specified, update the original spec, not empty, max 1024 bytes.
+            description: |-
+                UpdateSchemaRequest is the request parameter for updating the event source.
+                 If source + type does not exist, SCHEMA_NOT_FOUND will be returned.
+                 If bus_name does not exist, DATA_BUS_NOT_FOUND will be returned.
+        UpdateSchemaResponse:
+            type: object
+            properties: {}
+            description: UpdateSchemaResponse is the response parameter for updating the event source.
+tags:
+    - name: EventBridgeService

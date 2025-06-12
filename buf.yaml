@@ -1,0 +1,26 @@
+# For details on buf.yaml configuration, visit https://buf.build/docs/configuration/v2/buf-yaml
+version: v2
+modules:
+  - path: api
+    lint:
+      use:
+        - STANDARD
+        - COMMENTS
+      ignore_only:
+        ENUM_VALUE_PREFIX:
+          - api/eventbridge/service/v1/eventbridge_service_v1_errors.proto
+        COMMENT_ENUM_VALUE:
+          - api/eventbridge/service/v1/eventbridge_service_v1_errors.proto
+  - path: third_party
+lint:
+  use:
+    - STANDARD
+  ignore_only:
+    PACKAGE_VERSION_SUFFIX:
+      - third_party/errors/errors.proto
+breaking:
+  use:
+    - FILE
+deps:
+  - buf.build/googleapis/googleapis
+  - buf.build/bufbuild/protovalidate
