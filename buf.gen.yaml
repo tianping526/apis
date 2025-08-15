@@ -2,7 +2,9 @@ version: v2
 plugins:
   - remote: buf.build/community/google-gnostic-openapi:v0.7.0
     out: .
-
+    opt:
+      - version=1.0.0
+      - default_response=false
 
 managed:
   enabled: true
