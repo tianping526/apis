@@ -366,12 +366,15 @@ message MQTopic {
   // Message queue type.
   MQType mq_type = 1 [(buf.validate.field).enum = {defined_only: true}];
   // Endpoint list, e.g., ["10.10.10.1:500", "10.10.10.2:500"]
-  repeated string endpoints = 2 [
-    (buf.validate.field).repeated = {
-      min_items: 1
-      items: {string: {min_len: 1, max_bytes: 128}}
+  repeated string endpoints = 2 [(buf.validate.field).repeated = {
+    min_items: 1
+    items: {
+      string: {
+        min_len: 1
+        max_bytes: 128
+      }
     }
-  ];
+  }];
   // Topic name
   string topic = 3 [(buf.validate.field).string = {
     max_bytes: 128
